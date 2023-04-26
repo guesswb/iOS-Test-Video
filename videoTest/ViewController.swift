@@ -35,21 +35,12 @@ class ViewController: UIViewController {
         }
     }
     
-    
     @IBAction func sliderValueChanged(_ sender: UISlider) {
-//
-//        guard let totalSeconds = self.player.currentItem?.duration.seconds else { return }
-//
-//        let seekTime = CMTime(value: CMTimeValue(Double(sender.value) * totalSeconds), timescale: 1)
-//
-//        self.player.seek(to: seekTime) { _ in
-//
-//            let minutes = Int(Double(sender.value) * totalSeconds) / 60
-//            let seconds = Int(Double(sender.value) * totalSeconds) % 60
-//            let timeFormatString = String(format: "%02d : %02d", minutes, seconds)
-//
-//            self.currentTime.text = timeFormatString
-//        }
+
+        guard let totalSeconds = self.player.currentItem?.duration.seconds else { return }
+        
+        let seekTime = CMTime(seconds: Double(sender.value) * totalSeconds, preferredTimescale: Int32(NSEC_PER_SEC))
+        self.player.seek(to: seekTime, toleranceBefore: .zero, toleranceAfter: .zero)
     }
     
     override func viewDidLoad() {
@@ -145,17 +136,17 @@ extension ViewController: PHPickerViewControllerDelegate {
         
             let interval = CMTime(seconds: 0.01, preferredTimescale: Int32(NSEC_PER_SEC))
             
-            self.player.addPeriodicTimeObserver(forInterval: interval, queue: .main, using: { currentTime in
+            self.player.addPeriodicTimeObserver(forInterval: interval, queue: .main, using: { cmTime in
                 guard let duration = self.player.currentItem?.duration else { return }
                 
-                let currentSeconds = CMTimeGetSeconds(currentTime)
+                let currentSeconds = CMTimeGetSeconds(cmTime)
                 let totalSeconds = CMTimeGetSeconds(duration)
                 
                 if currentSeconds == totalSeconds {
                     self.pauseVideo()
                     self.player.seek(to: CMTime(seconds: 0, preferredTimescale: Int32(NSEC_PER_SEC)))
                 } else {
-                    self.slider.value = Float(currentTime.seconds / duration.seconds)
+                    self.slider.value = Float(cmTime.seconds / duration.seconds)
                 }
                 
                 self.changeCurrentTime()
